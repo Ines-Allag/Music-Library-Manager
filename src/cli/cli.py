@@ -7,12 +7,13 @@ Exemples :
 import argparse
 import sys
 from pathlib import Path
-
+BLEU = "\033[94m"
+RESET = "\033[0m"
 # Permet d'importer le dossier src/library depuis src/cli
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from library.metadata import read_metadata  # noqa: E402
-
+from library.scanner import  Scanner
 
 def build_parser():
     """Définit les options de la ligne de commande."""
@@ -48,6 +49,15 @@ def display_metadata(metadata):
     print(f"Durée     : {format_duration(metadata['duration'])}")
     print(f"Débit     : {metadata['bitrate']} kbit/s")
 
+def display_musiques(musiques):
+    """Affiche la liste des musiques trouvées dans un dossier."""
+    print(f"{len(musiques)} musique(s) trouvée(s) :")
+    for musique in musiques:
+        duree = format_duration(musique["duration"])
+        print(f"- {musique['artist']} - {musique['title']} ({duree})")
+        print(f"  {musique['path']}")
+        print(f"{BLEU}  {musique['format']} {RESET}")
+
 
 def main():
     parser = build_parser()
@@ -65,9 +75,14 @@ def main():
             sys.exit(1)
         display_metadata(metadata)
 
+
     elif args.directory:
-        # TODO (étape 2) : explorer le dossier, puis générer la playlist (-o)
-        print("L'option -d n'est pas encore implémentée.")
+        if not Path(args.directory).is_dir():
+            print(f"Erreur : dossier introuvable : {args.directory}")
+            sys.exit(1)
+        musiques = Scanner(args.directory).scan()
+        display_musiques(musiques)
+
 
 
 if __name__ == "__main__":

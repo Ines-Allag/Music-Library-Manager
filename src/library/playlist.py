@@ -10,7 +10,7 @@ from pathlib import Path
 
 NAMESPACE = "http://xspf.org/ns/0/"
 UNKNOWN = "Inconnu" 
-DEFAULT_OUTPUT = "default_playlist.xspf"
+DEFAULT_OUTPUT = "playlist.xspf"
 
 
 def txt(musique, cle):

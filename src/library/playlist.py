@@ -13,8 +13,8 @@ UNKNOWN = "Inconnu"
 DEFAULT_OUTPUT = "default_playlist.xspf"
 
 
-def _texte(musique, cle):
-    """Retourne la valeur texte d'une clé, ou None si absente/vide/"Inconnu"."""
+def txt(musique, cle):
+    """Retourne la valeur txt d'une clé, ou None si absente/vide/"Inconnu"."""
     valeur = musique.get(cle)
     if valeur is None:
         return None
@@ -24,9 +24,9 @@ def _texte(musique, cle):
     return valeur
 
 
-def _numero_piste(musique):
+def numeroPiste(musique):
     """Convertit le tag tracknumber en entier ("3/12" -> 3). None si invalide."""
-    valeur = _texte(musique, "tracknumber")
+    valeur = txt(musique, "tracknumber")
     if valeur is None:
         return None
     try:
@@ -36,7 +36,7 @@ def _numero_piste(musique):
     return numero if numero > 0 else None
 
 
-def _duree_ms(musique):
+def dureeMs(musique):
     """Convertit la durée (secondes) en millisecondes entières. None si invalide."""
     try:
         millisecondes = int(round(float(musique.get("duration")) * 1000))
@@ -45,7 +45,7 @@ def _duree_ms(musique):
     return millisecondes if millisecondes > 0 else None
 
 
-def _location(musique):
+def locat(musique):
     """Retourne l'URI file:// du fichier (obligatoire en XSPF), ou None."""
     chemin = musique.get("path")
     if not chemin:
@@ -53,13 +53,13 @@ def _location(musique):
     return Path(chemin).resolve().as_uri() 
 
 
-def _ajouter_element(parent, nom, valeur):
+def addElem(parent, nom, valeur):
     """Ajoute <nom>valeur</nom> à parent, sauf si valeur est None."""
     if valeur is not None:
         ET.SubElement(parent, nom).text = str(valeur)
 
 
-def creer_playlist(musiques, titre="Playlist"):
+def creerPlaylist(musiques, titre="Playlist"):
     """Construit l'arbre XML XSPF à partir d'une liste de musiques.
 
     Une musique sans chemin est ignorée. Les métadonnées absentes ou
@@ -78,16 +78,16 @@ def creer_playlist(musiques, titre="Playlist"):
 
     nb_pistes = 0
     for musique in musiques:
-        location = _location(musique)
+        location = locat(musique)
         if location is None:
             continue
         piste = ET.SubElement(liste_pistes, "track")
-        _ajouter_element(piste, "location", location)
-        _ajouter_element(piste, "title", _texte(musique, "title"))
-        _ajouter_element(piste, "creator", _texte(musique, "artist"))
-        _ajouter_element(piste, "album", _texte(musique, "album"))
-        _ajouter_element(piste, "trackNum", _numero_piste(musique))
-        _ajouter_element(piste, "duration", _duree_ms(musique))
+        addElem(piste, "location", location)
+        addElem(piste, "title", txt(musique, "title"))
+        addElem(piste, "creator", txt(musique, "artist"))
+        addElem(piste, "album", txt(musique, "album"))
+        addElem(piste, "trackNum", numeroPiste(musique))
+        addElem(piste, "duration", dureeMs(musique))
         nb_pistes += 1
 
     if nb_pistes == 0:
@@ -97,7 +97,7 @@ def creer_playlist(musiques, titre="Playlist"):
     return ET.ElementTree(racine)
 
 
-def sauvegarder_playlist(musiques, chemin=DEFAULT_OUTPUT, titre="Playlist"):
+def sauvPlaylist(musiques, chemin=DEFAULT_OUTPUT, titre="Playlist"):
     """Génère la playlist XSPF et l'enregistre dans un fichier.
 
     Paramètres :
@@ -108,7 +108,7 @@ def sauvegarder_playlist(musiques, chemin=DEFAULT_OUTPUT, titre="Playlist"):
     Retourne le chemin du fichier créé.
     Lève ValueError si la liste est vide, OSError si l'écriture échoue.
     """
-    arbre = creer_playlist(musiques, titre)
+    arbre = creerPlaylist(musiques, titre)
 
     chemin = Path(chemin)
     if chemin.suffix.lower() != ".xspf":

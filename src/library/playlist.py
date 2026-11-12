@@ -37,7 +37,7 @@ def numeroPiste(musique):
 
 
 def dureeMs(musique):
-    """Convertit la durée (secondes) en millisecondes entières. None si invalide."""
+    """Convertit la durée (secondes) en millisecondes entières. None si invalide. car les fichier xspf n'accepte pas un flaot"""
     try:
         millisecondes = int(round(float(musique.get("duration")) * 1000))
     except (TypeError, ValueError):
@@ -53,7 +53,7 @@ def locat(musique):
     return Path(chemin).resolve().as_uri() 
 
 
-def addElem(parent, nom, valeur):
+def ajoutElem(parent, nom, valeur):
     """Ajoute <nom>valeur</nom> à parent, sauf si valeur est None."""
     if valeur is not None:
         ET.SubElement(parent, nom).text = str(valeur)
@@ -78,16 +78,16 @@ def creerPlaylist(musiques, titre="Playlist"):
 
     nb_pistes = 0
     for musique in musiques:
-        location = locat(musique)
-        if location is None:
+        loca = locat(musique)
+        if loca is None:
             continue
         piste = ET.SubElement(liste_pistes, "track")
-        addElem(piste, "location", location)
-        addElem(piste, "title", txt(musique, "title"))
-        addElem(piste, "creator", txt(musique, "artist"))
-        addElem(piste, "album", txt(musique, "album"))
-        addElem(piste, "trackNum", numeroPiste(musique))
-        addElem(piste, "duration", dureeMs(musique))
+        ajoutElem(piste, "location", loca)
+        ajoutElem(piste, "title", txt(musique, "title"))
+        ajoutElem(piste, "creator", txt(musique, "artist"))
+        ajoutElem(piste, "album", txt(musique, "album"))
+        ajoutElem(piste, "trackNum", numeroPiste(musique))
+        ajoutElem(piste, "duration", dureeMs(musique))
         nb_pistes += 1
 
     if nb_pistes == 0:
@@ -101,9 +101,9 @@ def sauvPlaylist(musiques, chemin=DEFAULT_OUTPUT, titre="Playlist"):
     """Génère la playlist XSPF et l'enregistre dans un fichier.
 
     Paramètres :
-        musiques : liste de dictionnaires (voir Scanner.scan).
-        chemin : fichier de sortie (".xspf" ajouté s'il manque).
-        titre : titre de la playlist.
+        musiques
+        chemin 
+        titre 
 
     Retourne le chemin du fichier créé.
     Lève ValueError si la liste est vide, OSError si l'écriture échoue.

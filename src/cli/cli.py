@@ -87,7 +87,7 @@ def main():
             print(f"Erreur : {error}")
             sys.exit(1)
         display_metadata(metadata)
-        if args.output:  # AJOUT (4)
+        if args.output:
             generer_playlist([metadata], args.output, Path(args.file).stem)
 
 

@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from library.metadata import read_metadata  # noqa: E402
 from library.scanner import  Scanner
+from library.playlist import sauvPlaylist, DEFAULT_OUTPUT
 
 def build_parser():
     """Définit les options de la ligne de commande."""
@@ -26,7 +27,10 @@ def build_parser():
     source.add_argument("-f", "--file", help="fichier MP3 ou FLAC à analyser")
     source.add_argument("-d", "--directory", help="dossier à explorer (pas encore implémenté)")
 
-    parser.add_argument("-o", "--output", help="fichier XSPF de sortie (pas encore implémenté)")
+    parser.add_argument(
+        "-o", "--output", nargs="?", const=DEFAULT_OUTPUT,
+        help=f"génère une playlist XSPF (défaut : {DEFAULT_OUTPUT})"
+    )
     return parser
 
 
@@ -59,6 +63,15 @@ def display_musiques(musiques):
         print(f"{BLEU}  {musique['format']} {RESET}")
 
 
+def generer_playlist(musiques, sortie, titre):
+    """Sauvegarde la playlist XSPF et affiche le résultat."""
+    try:
+        chemin = sauvPlaylist(musiques, sortie, titre)
+    except (ValueError, OSError) as error:
+        print(f"Erreur : {error}")
+        sys.exit(1)
+    print(f"Playlist enregistrée : {chemin}")
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -74,6 +87,9 @@ def main():
             print(f"Erreur : {error}")
             sys.exit(1)
         display_metadata(metadata)
+        if args.output:  # AJOUT (4)
+            generer_playlist([metadata], args.output, Path(args.file).stem)
+
 
 
     elif args.directory:
@@ -82,6 +98,8 @@ def main():
             sys.exit(1)
         musiques = Scanner(args.directory).scan()
         display_musiques(musiques)
+        if args.output:
+            generer_playlist(musiques, args.output, Path(args.directory).name or "Playlist")
 
 
 

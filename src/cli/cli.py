@@ -2,7 +2,7 @@
 
 Exemples :
     python3 src/cli/cli.py -h
-    python3 src/cli/cli.py -f samples/Classical.mp3
+    python3 src/cli/cli.py -f samples/musique_test/sousDossier1/Classical.mp3
 """
 import argparse
 import sys
@@ -19,17 +19,27 @@ from library.playlist import sauvPlaylist, DEFAULT_OUTPUT
 def build_parser():
     """Définit les options de la ligne de commande."""
     parser = argparse.ArgumentParser(
-        description="Lit les métadonnées de fichiers MP3/FLAC et génère des playlists XSPF."
+        description="Lit les métadonnées de fichiers MP3/FLAC, explore des dossiers "
+                    "et génère des playlists XSPF.",
+        epilog="exemples :\n"
+               "  python3 src/cli/cli.py -f music.mp3\n"
+               "  python3 src/cli/cli.py -d ./music/\n"
+               "  python3 src/cli/cli.py -d ./music/ -o playlist.xspf",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     # -f et -d sont exclusives : on ne peut pas utiliser les deux en même temps
     source = parser.add_mutually_exclusive_group()
-    source.add_argument("-f", "--file", help="fichier MP3 ou FLAC à analyser")
-    source.add_argument("-d", "--directory", help="dossier à explorer (pas encore implémenté)")
+    source.add_argument("-f", "--file",
+                        help="fichier MP3 ou FLAC dont on affiche les métadonnées")
+    source.add_argument("-d", "--directory",
+                        help="dossier à explorer avec ses sous-dossiers : "
+                             "affiche les fichiers MP3/FLAC trouvés")
 
     parser.add_argument(
         "-o", "--output", nargs="?", const=DEFAULT_OUTPUT,
-        help=f"génère une playlist XSPF (défaut : {DEFAULT_OUTPUT})"
+        help=f"enregistre le résultat dans une playlist XSPF "
+             f"(nom du fichier facultatif, défaut : {DEFAULT_OUTPUT})"
     )
     return parser
 

@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from library.metadata import read_metadata  # noqa: E402
 from library.scanner import  Scanner
-from library.playlist import sauvegarder_playlist, DEFAULT_OUTPUT
+from library.playlist import sauvPlaylist, DEFAULT_OUTPUT
 
 def build_parser():
     """Définit les options de la ligne de commande."""
@@ -66,7 +66,7 @@ def display_musiques(musiques):
 def generer_playlist(musiques, sortie, titre):
     """Sauvegarde la playlist XSPF et affiche le résultat."""
     try:
-        chemin = sauvegarder_playlist(musiques, sortie, titre)
+        chemin = sauvPlaylist(musiques, sortie, titre)
     except (ValueError, OSError) as error:
         print(f"Erreur : {error}")
         sys.exit(1)

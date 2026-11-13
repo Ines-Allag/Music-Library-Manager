@@ -108,8 +108,10 @@ def main():
             sys.exit(1)
         musiques = Scanner(args.directory).scan()
         display_musiques(musiques)
+
+
         if args.output:
-            generer_playlist(musiques, args.output, Path(args.directory).name or "Playlist")
+            generer_playlist(musiques, args.output, Path(args.directory).name)
 
 
 

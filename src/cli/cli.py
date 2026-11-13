@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from library.metadata import read_metadata  # noqa: E402
 from library.scanner import  Scanner
 from library.playlist import sauvPlaylist, DEFAULT_OUTPUT
+from library.tags import modify_tags
 
 def build_parser():
     """Définit les options de la ligne de commande."""
@@ -41,6 +42,12 @@ def build_parser():
         help=f"enregistre le résultat dans une playlist XSPF "
              f"(nom du fichier facultatif, défaut : {DEFAULT_OUTPUT})"
     )
+    parser.add_argument(
+        "--set", action="append", metavar="TAG=VALEUR",
+        help="modifie un tag du fichier donné avec -f (option répétable), "  
+             "ex. --set \"title=Mon titre\" --set \"artist=Mon artiste\""
+    )
+
     return parser
 
 
@@ -82,6 +89,17 @@ def generer_playlist(musiques, sortie, titre):
         sys.exit(1)
     print(f"Playlist enregistrée : {chemin}")
 
+def parse_changes(pairs):
+    """Transforme ["title=Mon titre", ...] en {"title": "Mon titre"}."""
+    changes = {}
+    for pair in pairs:
+        if "=" not in pair:
+            print(f"Erreur : '{pair}' n'est pas de la forme TAG=VALEUR.")
+            sys.exit(1)
+        tag, value = pair.split("=", 1)
+        changes[tag.strip().lower()] = value
+    return changes
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -90,7 +108,18 @@ def main():
         print("Erreur : aucun paramètre. Tapez -h (ou --help) pour obtenir de l'aide.")
         sys.exit(1)
 
+    if args.set and not args.file:  # <<< AJOUTE
+        print("Erreur : --set s'utilise avec -f (un fichier).")  # <<< AJOUTE
+        sys.exit(1)
+
     if args.file:
+        if args.set:  # <<< AJOUTE
+            try:  # <<< AJOUTE
+                modify_tags(args.file, parse_changes(args.set))  # <<< AJOUTE
+            except (FileNotFoundError, ValueError) as error:  # <<< AJOUTE
+                print(f"Erreur : {error}")  # <<< AJOUTE
+                sys.exit(1)  # <<< AJOUTE
+            print("Tags modifiés.")
         try:
             metadata = read_metadata(args.file)
         except (FileNotFoundError, ValueError) as error:

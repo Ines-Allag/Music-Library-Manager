@@ -154,7 +154,7 @@ def main():
 
         if args.api:
             try:
-                infos = album_complet(metadata["artist"], metadata["album"])
+                infos = album_complet(metadata["artist"], metadata["album"], metadata["title"])
             except (ValueError, ConnectionError) as error:
                 print(f"Erreur : {error}")
                 sys.exit(1)

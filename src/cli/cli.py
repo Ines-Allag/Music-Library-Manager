@@ -1,12 +1,7 @@
-"""Point d'entrée en ligne de commande (CLI).
-
-Exemples :
-    python3 src/cli/cli.py -h
-    python3 src/cli/cli.py -f samples/Classical.mp3
-"""
 import argparse
 import sys
 from pathlib import Path
+from library.api import album_complet
 BLEU = "\033[94m"
 RESET = "\033[0m"
 # Permet d'importer le dossier src/library depuis src/cli
@@ -24,10 +19,13 @@ def build_parser():
     # -f et -d sont exclusives : on ne peut pas utiliser les deux en même temps
     source = parser.add_mutually_exclusive_group()
     source.add_argument("-f", "--file", help="fichier MP3 ou FLAC à analyser")
-    source.add_argument("-d", "--directory", help="dossier à explorer (pas encore implémenté)")
+    source.add_argument("-d", "--directory", help="dossier à explorer")
 
-    parser.add_argument("-o", "--output", help="fichier XSPF de sortie (pas encore implémenté)")
+    parser.add_argument("-o", "--output", help="fichier XSPF de sortie ")
+    parser.add_argument("--api", action="store_true",
+                        help="avec -f : affiche les infos complètes de l'album et les paroles (API web)")
     return parser
+
 
 
 def format_duration(seconds):
@@ -58,6 +56,15 @@ def display_musiques(musiques):
         print(f"  {musique['path']}")
         print(f"{BLEU}  {musique['format']} {RESET}")
 
+def display_album(infos):
+    """Affiche les infos d'un album et les paroles de ses pistes."""
+    print(f"\nAlbum : {infos['title']} - {infos['artist']} ({infos['date']})")
+    if infos["genres"]:
+        print(f"Genres : {', '.join(infos['genres'])}")
+    for piste in infos["tracks"]:
+        print(f"\n{piste['number']}. {piste['title']} ({format_duration(piste['duration'])})")
+        print(piste["lyrics"] or "  (paroles non disponibles)")
+
 
 def main():
     parser = build_parser()
@@ -74,8 +81,13 @@ def main():
             print(f"Erreur : {error}")
             sys.exit(1)
         display_metadata(metadata)
-
-
+    if args.api:
+        try:
+            infos = album_complet(metadata["artist"], metadata["album"])
+        except (ValueError, ConnectionError) as error:
+            print(f"Erreur : {error}")
+            sys.exit(1)
+        display_album(infos)
     elif args.directory:
         if not Path(args.directory).is_dir():
             print(f"Erreur : dossier introuvable : {args.directory}")
